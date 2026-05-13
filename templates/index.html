@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Handwritten Notes AI — Handwritten Text Recognition</title>
+  <meta name="description" content="Convert handwritten notes to digital text instantly using AI-powered OCR. Upload your image and let Handwritten Notes AI do the rest."/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✍️</text></svg>"/>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <!-- Custom CSS -->
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet"/>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+
+<div class="page-wrapper">
+
+  <!-- ── Navbar ── -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <span class="brand-icon"></span>Handwritten AI
+      </a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="/">🏠 Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#upload">⚡ Extract</a></li>
+          <li class="nav-item"><a class="nav-link" href="/history">📋 History</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Hero ── -->
+  <section class="hero">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+          <div class="hero-badge">
+            <span class="pulse-dot"></span>AI-Powered OCR Engine
+          </div>
+          <h1 class="hero-title">
+            Transform <span class="gradient-text">Handwritten</span><br/>
+            Notes Into<br/>Digital Text
+          </h1>
+          <p class="hero-subtitle">
+            Upload any handwritten image and our deep-learning engine — built on
+            EasyOCR + OpenCV — extracts clean, editable text in seconds.
+          </p>
+          <div class="d-flex gap-3 flex-wrap">
+            <a href="#upload" class="btn-neon">⚡ Start Extracting</a>
+            <a href="/history" class="btn-ghost">📋 View History</a>
+          </div>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <div class="stat-num" data-count-to="99" data-suffix="%">0%</div>
+              <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-num" data-count-to="10" data-suffix="+">0+</div>
+              <div class="stat-label">Languages</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-num" data-count-to="3" data-suffix="s">0s</div>
+              <div class="stat-label">Avg Speed</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 d-none d-lg-flex justify-content-center">
+          <!-- Decorative AI card -->
+          <div class="glass-card p-4" style="max-width:380px;width:100%;">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div style="width:48px;height:48px;background:linear-gradient(135deg,#00d4ff,#a855f7);border-radius:12px;flex-shrink:0;"></div>
+              <div>
+                <div style="font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;color:#00d4ff;">OCR ANALYSIS</div>
+                <div style="font-size:0.75rem;color:#94a3b8;">Processing handwritten input…</div>
+              </div>
+            </div>
+            <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:1rem;margin-bottom:1rem;font-size:0.82rem;color:#94a3b8;font-family:monospace;line-height:1.8;">
+              &gt; Loading model weights…<br/>
+              &gt; Preprocessing image…<br/>
+              &gt; <span style="color:#00d4ff;">Extracting text blocks…</span><br/>
+              &gt; <span style="color:#a855f7;">Confidence: 97.3%</span>
+            </div>
+            <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:1rem;">
+              <div style="font-size:0.78rem;color:#94a3b8;margin-bottom:0.4rem;">EXTRACTED TEXT</div>
+              <div style="font-size:0.95rem;line-height:1.6;">"The quick brown fox jumps over the lazy dog."</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Upload Section ── -->
+  <section class="upload-section" id="upload">
+    <div class="container">
+      <h2 class="section-title gradient-text">Upload Your Note</h2>
+      <p class="section-subtitle">Drag & drop or click to select a handwritten image</p>
+
+      <div class="row g-4 justify-content-center">
+        <div class="col-lg-8">
+
+          <!-- Drop Zone -->
+          <div class="upload-zone" id="drop-zone">
+            <div class="upload-icon-wrap">✍️</div>
+            <div class="upload-title">Drop your image here</div>
+            <div class="upload-desc">or click anywhere in this box to browse</div>
+            <div class="upload-formats">
+              <span class="format-tag">PNG</span>
+              <span class="format-tag">JPG</span>
+              <span class="format-tag">BMP</span>
+              <span class="format-tag">TIFF</span>
+              <span class="format-tag">WEBP</span>
+            </div>
+            <input type="file" id="file-input" accept="image/*" style="display:none"/>
+          </div>
+
+          <!-- Image Preview -->
+          <div class="preview-container" id="preview-wrap">
+            <img src="" alt="Preview" id="preview-img"/>
+            <div class="preview-overlay">
+              <span class="preview-filename" id="preview-name">filename.png</span>
+              <button class="btn-ghost btn-danger" id="remove-btn">✕ Remove</button>
+            </div>
+          </div>
+
+          <!-- Language + Submit -->
+          <div class="lang-select-wrap">
+            <label style="font-size:0.82rem;color:#94a3b8;margin-bottom:6px;display:block;">🌐 Language</label>
+            <select class="custom-select" id="lang-select">
+              <option value="en">English</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="es">Spanish</option>
+              <option value="hi">Hindi</option>
+              <option value="zh">Chinese (Simplified)</option>
+              <option value="ar">Arabic</option>
+              <option value="ja">Japanese</option>
+              <option value="ko">Korean</option>
+              <option value="pt">Portuguese</option>
+            </select>
+          </div>
+
+          <div class="mt-3">
+            <button class="btn-neon" id="submit-btn" style="width:100%;justify-content:center;">
+              <span>⚡</span> Extract Text
+            </button>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="progress-wrap" id="progress-wrap">
+            <div class="progress-label">
+              <span>Processing…</span>
+              <span id="progress-pct">0%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+          </div>
+
+          <!-- AI Animation -->
+          <div class="ai-processing glass-card mt-3" id="ai-processing">
+            <div class="ai-orb">
+              <div class="ai-orb-inner"></div>
+              <div class="ai-ring"></div>
+              <div class="ai-ring ai-ring-2"></div>
+            </div>
+            <div class="ai-status" id="ai-status">INITIALISING AI…</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Output Section ── -->
+  <section class="output-section d-none" id="output-section">
+    <div class="container">
+      <div class="glow-divider"></div>
+      <h2 class="section-title gradient-text mb-4">Extracted Text</h2>
+
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="glass-card output-card">
+            <div class="output-header">
+              <div class="output-title">✍️ OCR Result</div>
+              <div class="output-actions">
+                <button class="btn-ghost" id="copy-btn">📋 Copy</button>
+                <button class="btn-voice btn-ghost" id="voice-btn">🔊 Read Aloud</button>
+                <a class="btn-ghost" id="dl-txt-btn" href="#" target="_blank">⬇ TXT</a>
+                <a class="btn-ghost" id="dl-pdf-btn" href="#" target="_blank">⬇ PDF</a>
+              </div>
+            </div>
+
+            <textarea class="output-textarea" id="output-textarea" placeholder="Extracted text will appear here…" spellcheck="true"></textarea>
+
+            <!-- Confidence Meter -->
+            <div class="confidence-wrap">
+              <span class="confidence-label">🎯 AI Confidence</span>
+              <div class="confidence-track">
+                <div class="confidence-fill" id="conf-fill" style="width:0%"></div>
+              </div>
+              <span class="confidence-pct" id="conf-pct">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Features ── -->
+  <section class="features-section">
+    <div class="container">
+      <div class="glow-divider"></div>
+      <h2 class="section-title gradient-text">Why Handwritten AI?</h2>
+      <p class="section-subtitle">Powered by deep learning, built for humans</p>
+      <div class="row g-4 mt-2">
+        {% set features = [
+          ("🧠","Deep Learning OCR","CNN + LSTM architecture trained on the IAM Handwriting Dataset for maximum accuracy."),
+          ("⚡","Lightning Fast","Extract text in under 3 seconds with our optimised inference pipeline."),
+          ("🌐","10+ Languages","Supports English, French, German, Spanish, Hindi, Chinese and more."),
+          ("🎯","Confidence Score","Every prediction comes with a real-time AI confidence percentage."),
+          ("📥","Export Anywhere","Download results as TXT or PDF files with one click."),
+          ("🔊","Voice Readback","Listen to your extracted text with our built-in text-to-speech."),
+          ("📋","History Log","All your conversions are stored locally for easy retrieval."),
+          ("📱","Mobile-Ready","Fully responsive design works seamlessly on any device."),
+        ] %}
+        {% for icon, name, desc in features %}
+        <div class="col-sm-6 col-lg-3">
+          <div class="glass-card feature-card">
+            <div class="feature-icon">{{ icon }}</div>
+            <div class="feature-name">{{ name }}</div>
+            <div class="feature-desc">{{ desc }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-brand">Handwritten Notes AI</div>
+      <div>Built with ❤️ using Flask · EasyOCR · OpenCV · TensorFlow</div>
+      <div class="mt-1" style="font-size:0.75rem;opacity:0.5;">© 2024 Handwritten AI. All rights reserved.</div>
+    </div>
+  </footer>
+
+</div><!-- /page-wrapper -->
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/particles.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
